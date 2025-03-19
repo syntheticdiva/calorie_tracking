@@ -1,0 +1,4 @@
+"db_url"="jdbc:postgresql://localhost:5433/calorie_tracking"
+"db_user"="postgres"
+"db_pass"="111"
+
