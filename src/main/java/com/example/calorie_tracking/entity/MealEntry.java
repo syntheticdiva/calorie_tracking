@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -33,11 +34,12 @@ public class MealEntry {
             inverseJoinColumns = @JoinColumn(name = "meal_id")
     )
     private List<Meal> meals;
+    @OneToMany(mappedBy = "mealEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MealEntryMeal> mealEntries = new ArrayList<>();
 
     public double getTotalCalories() {
-        return meals != null ?
-                meals.stream().mapToDouble(Meal::getCaloriesPerServing).sum()
-                : 0.0;
+        return mealEntries.stream()
+                .mapToDouble(me -> me.getMeal().getCaloriesPerServing() * me.getQuantity())
+                .sum();
     }
-
 }

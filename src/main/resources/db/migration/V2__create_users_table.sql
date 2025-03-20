@@ -3,9 +3,9 @@ CREATE TABLE users (
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     age INT NOT NULL CHECK (age > 0),
-    gender VARCHAR(50) NOT NULL,
+    gender VARCHAR(10) NOT NULL CHECK (gender IN ('MALE', 'FEMALE')),
     weight DOUBLE PRECISION NOT NULL CHECK (weight > 0),
     height DOUBLE PRECISION NOT NULL CHECK (height > 0),
-    goal VARCHAR(50) NOT NULL,
-    daily_calorie_intake DOUBLE PRECISION
+    goal VARCHAR(20) NOT NULL CHECK (goal IN ('WEIGHT_LOSS', 'MAINTENANCE', 'MUSCLE_GAIN')),
+    daily_calorie_intake DOUBLE PRECISION NOT NULL
 );

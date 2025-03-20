@@ -12,5 +12,12 @@ import java.util.List;
 public interface MealEntryRepository extends JpaRepository<MealEntry, Long> {
     List<MealEntry> findByUserIdAndDate(Long userId, LocalDate date);
     List<MealEntry> findByUserId(Long userId);
+    @Query("SELECT me.date, SUM(mem.quantity * m.caloriesPerServing) " +
+            "FROM MealEntry me " +
+            "JOIN me.mealEntries mem " +        // mealEntries - список MealEntryMeal в MealEntry
+            "JOIN mem.meal m " +                // mem.meal - связь MealEntryMeal -> Meal
+            "WHERE me.user.id = :userId " +
+            "GROUP BY me.date")
+    List<Object[]> findDailyCaloriesSummary(@Param("userId") Long userId);
 
 }
