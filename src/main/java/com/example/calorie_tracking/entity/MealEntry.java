@@ -1,6 +1,5 @@
 package com.example.calorie_tracking.entity;
 
-import com.example.calorie_tracking.dto.UserDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

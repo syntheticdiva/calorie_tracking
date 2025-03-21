@@ -134,9 +134,10 @@ public class MealEntryService {
      * @return общее количество калорий
      */
     private double calculateTotalCalories(List<MealEntry> entries) {
-        return entries.stream()
+        double total = entries.stream()
                 .mapToDouble(MealEntry::getTotalCalories)
                 .sum();
+        return total;
     }
 
     /**
@@ -148,14 +149,20 @@ public class MealEntryService {
      * @param entries       список записей о приемах пищи
      * @return DTO ежедневного отчета
      */
-    private DailyReportDTO buildDailyReport(LocalDate date, double totalCalories, User user, List<MealEntry> entries) {
+    private DailyReportDTO buildDailyReport(LocalDate date,
+                                            double totalCalories,
+                                            User user,
+                                            List<MealEntry> entries) {
+        List<MealEntryDTO> entriesDTO = entries.stream()
+                .map(mealEntryMapper::toDTO)
+                .toList();
+
         return new DailyReportDTO(
                 date,
                 totalCalories,
+                entries.size(),
                 totalCalories <= user.getDailyCalorieIntake(),
-                entries.stream()
-                        .map(mealEntryMapper::toDTO)
-                        .toList()
+                entriesDTO
         );
     }
 

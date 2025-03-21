@@ -1,9 +1,6 @@
 package com.example.calorie_tracking.dto;
 
-import com.example.calorie_tracking.entity.Meal;
-import com.example.calorie_tracking.entity.User;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.time.LocalDate;
