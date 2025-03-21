@@ -32,4 +32,16 @@ public class GlobalExceptionHandler {
         });
         return ResponseEntity.badRequest().body(errors);
     }
+    @ExceptionHandler(InvalidUserDataException.class)
+    public ResponseEntity<String> handleInvalidUserDataException(InvalidUserDataException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+    @ExceptionHandler(MealNotFoundException.class)
+    public ResponseEntity<String> handleMealNotFoundException(MealNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+    @ExceptionHandler(InvalidMealDataException.class)
+    public ResponseEntity<String> handleInvalidMealDataException(InvalidMealDataException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
 }

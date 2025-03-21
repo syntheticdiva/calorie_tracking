@@ -38,10 +38,12 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Min(value = 1, message = "Вес должен быть положительным")
+    @Min(value = 20, message = "Вес должен быть в диапазоне от 20 до 500 кг")
+    @Max(value = 500, message = "Вес должен быть в диапазоне от 20 до 500 кг")
     private double weight;
 
-    @Min(value = 1, message = "Рост должен быть положительным")
+    @Min(value = 50, message = "Рост должен быть в диапазоне от 50 до 250 см")
+    @Max(value = 250, message = "Рост должен быть в диапазоне от 50 до 250 см")
     private double height;
 
     @NotNull(message = "Цель обязательна")

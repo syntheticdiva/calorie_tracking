@@ -3,28 +3,27 @@ package com.example.calorie_tracking.service;
 import com.example.calorie_tracking.dto.DailyReportDTO;
 import com.example.calorie_tracking.dto.MealEntryDTO;
 import com.example.calorie_tracking.dto.MealItemRequest;
-import com.example.calorie_tracking.dto.UserDTO;
 import com.example.calorie_tracking.entity.Meal;
 import com.example.calorie_tracking.entity.MealEntry;
 import com.example.calorie_tracking.entity.MealEntryMeal;
 import com.example.calorie_tracking.entity.User;
+import com.example.calorie_tracking.exception.InvalidMealEntryDataException;
 import com.example.calorie_tracking.exception.MealNotFoundException;
 import com.example.calorie_tracking.exception.UserNotFoundException;
 import com.example.calorie_tracking.mapper.MealEntryMapper;
-import com.example.calorie_tracking.mapper.UserMapper;
 import com.example.calorie_tracking.repository.MealEntryRepository;
 import com.example.calorie_tracking.repository.MealRepository;
 import com.example.calorie_tracking.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
-
+/**
+ * Сервис для работы с записями о приемах пищи.
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -35,8 +34,20 @@ public class MealEntryService {
     private final MealRepository mealRepository;
     private final MealEntryMapper mealEntryMapper;
 
+    /**
+     * Создает запись о приеме пищи для указанного пользователя.
+     *
+     * @param userId    идентификатор пользователя
+     * @param mealItems список блюд с их количеством
+     * @param date      дата приема пищи
+     * @return DTO созданной записи о приеме пищи
+     * @throws UserNotFoundException          если пользователь не найден
+     * @throws MealNotFoundException          если блюдо не найдено
+     */
     @Transactional
     public MealEntryDTO createMealEntry(Long userId, List<MealItemRequest> mealItems, LocalDate date) {
+        validateMealItems(mealItems);
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
@@ -62,6 +73,14 @@ public class MealEntryService {
 
         return mealEntryMapper.toDTO(saved);
     }
+
+    /**
+     * Возвращает список записей о приемах пищи для указанного пользователя и даты.
+     *
+     * @param userId идентификатор пользователя
+     * @param date  дата приема пищи
+     * @return список DTO записей о приемах пищи
+     */
     public List<MealEntryDTO> getMealEntriesByUserIdAndDate(Long userId, LocalDate date) {
         return mealEntryRepository.findByUserIdAndDate(userId, date)
                 .stream()
@@ -69,6 +88,12 @@ public class MealEntryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Возвращает список всех записей о приемах пищи для указанного пользователя.
+     *
+     * @param userId идентификатор пользователя
+     * @return список DTO записей о приемах пищи
+     */
     public List<MealEntryDTO> getMealEntriesByUserId(Long userId) {
         return mealEntryRepository.findByUserId(userId)
                 .stream()
@@ -76,6 +101,13 @@ public class MealEntryService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Генерирует ежедневный отчет о потребленных калориях для указанного пользователя и даты.
+     *
+     * @param userId идентификатор пользователя
+     * @param date  дата отчета
+     * @return DTO ежедневного отчета
+     */
     public DailyReportDTO generateDailyReport(Long userId, LocalDate date) {
         User user = findUserById(userId);
         List<MealEntry> entries = mealEntryRepository.findByUserIdAndDate(userId, date);
@@ -83,57 +115,39 @@ public class MealEntryService {
         return buildDailyReport(date, totalCalories, user, entries);
     }
 
-    public Map<LocalDate, Double> getCaloriesHistory(Long userId) {
-        return mealEntryRepository.findDailyCaloriesSummary(userId)
-                .stream()
-                .collect(Collectors.toMap(
-                        arr -> (LocalDate) arr[0],
-                        arr -> (Double) arr[1]
-                ));
-    }
-
-    // Вспомогательные методы
+    /**
+     * Находит пользователя по идентификатору.
+     *
+     * @param userId идентификатор пользователя
+     * @return найденный пользователь
+     * @throws UserNotFoundException если пользователь не найден
+     */
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    private Meal findMealById(Long mealId) {
-        return mealRepository.findById(mealId)
-                .orElseThrow(() -> new MealNotFoundException(mealId));
-    }
-
-    private MealEntry createMealEntry(User user, LocalDate date) {
-        MealEntry mealEntry = new MealEntry();
-        mealEntry.setUser(user);
-        mealEntry.setDate(date);
-        return mealEntry;
-    }
-
-    private void linkMealEntryMeals(MealEntry mealEntry, List<MealItemRequest> mealItems) {
-        List<MealEntryMeal> mealEntries = mealItems.stream()
-                .map(item -> {
-                    Meal meal = findMealById(item.getMealId());
-                    return createMealEntryMeal(mealEntry, meal, item.getQuantity());
-                })
-                .toList();
-        mealEntry.setMealEntries(mealEntries);
-    }
-
-    private MealEntryMeal createMealEntryMeal(MealEntry mealEntry, Meal meal, int quantity) {
-        MealEntryMeal mealEntryMeal = new MealEntryMeal();
-        mealEntryMeal.setMealEntry(mealEntry);
-        mealEntryMeal.setMeal(meal);
-        mealEntryMeal.setQuantity(quantity);
-        return mealEntryMeal;
-    }
-
+    /**
+     * Вычисляет общее количество калорий для списка записей о приемах пищи.
+     *
+     * @param entries список записей о приемах пищи
+     * @return общее количество калорий
+     */
     private double calculateTotalCalories(List<MealEntry> entries) {
         return entries.stream()
                 .mapToDouble(MealEntry::getTotalCalories)
                 .sum();
     }
 
+    /**
+     * Создает DTO ежедневного отчета.
+     *
+     * @param date          дата отчета
+     * @param totalCalories общее количество калорий
+     * @param user          пользователь
+     * @param entries       список записей о приемах пищи
+     * @return DTO ежедневного отчета
+     */
     private DailyReportDTO buildDailyReport(LocalDate date, double totalCalories, User user, List<MealEntry> entries) {
         return new DailyReportDTO(
                 date,
@@ -144,84 +158,24 @@ public class MealEntryService {
                         .toList()
         );
     }
+
+    /**
+     * Проверяет корректность данных о приеме пищи.
+     *
+     * @param mealItems список блюд с их количеством
+     * @throws InvalidMealEntryDataException если данные некорректны
+     */
+    private void validateMealItems(List<MealItemRequest> mealItems) {
+        if (mealItems == null || mealItems.isEmpty()) {
+            throw new InvalidMealEntryDataException("Список блюд не может быть пустым");
+        }
+        for (MealItemRequest item : mealItems) {
+            if (item.getMealId() == null) {
+                throw new InvalidMealEntryDataException("ID блюда не может быть null");
+            }
+            if (item.getQuantity() <= 0) {
+                throw new InvalidMealEntryDataException("Количество блюда должно быть положительным числом");
+            }
+        }
+    }
 }
-//@Service
-//public class MealEntryService {
-//
-//    @Autowired
-//    private MealEntryRepository mealEntryRepository;
-//
-//    @Autowired
-//    private UserService userService;
-//
-//    @Autowired
-//    private MealService mealService;
-//    @Autowired
-//    private UserRepository userRepository;
-//    @Autowired
-//    private MealRepository mealRepository;
-//
-//    public MealEntryDTO createMealEntry(Long userId, List<MealItemRequest> mealItems, LocalDate date) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        MealEntry mealEntry = new MealEntry();
-//        mealEntry.setUser(user);
-//        mealEntry.setDate(date);
-//
-//        // Добавляем блюда с количеством
-//        List<MealEntryMeal> mealEntries = mealItems.stream()
-//                .map(item -> {
-//                    Meal meal = mealRepository.findById(item.getMealId())
-//                            .orElseThrow(() -> new RuntimeException("Meal not found"));
-//
-//                    MealEntryMeal mealEntryMeal = new MealEntryMeal();
-//                    mealEntryMeal.setMealEntry(mealEntry);
-//                    mealEntryMeal.setMeal(meal);
-//                    mealEntryMeal.setQuantity(item.getQuantity());
-//                    return mealEntryMeal;
-//                })
-//                .toList();
-//
-//        mealEntry.setMealEntries(mealEntries);
-//
-//        MealEntry savedEntry = mealEntryRepository.save(mealEntry);
-//        return MealEntryMapper.INSTANCE.toDTO(savedEntry);
-//    }
-//    public List<MealEntryDTO> getMealEntriesByUserIdAndDate(Long userId, LocalDate date) {
-//        return mealEntryRepository.findByUserIdAndDate(userId, date).stream()
-//                .map(MealEntryMapper.INSTANCE::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//
-//    public List<MealEntryDTO> getMealEntriesByUserId(Long userId) {
-//        return mealEntryRepository.findByUserId(userId).stream()
-//                .map(MealEntryMapper.INSTANCE::toDTO)
-//                .collect(Collectors.toList());
-//    }
-//    public DailyReportDTO generateDailyReport(Long userId, LocalDate date) {
-//        List<MealEntry> entries = mealEntryRepository.findByUserIdAndDate(userId, date);
-//        double totalCalories = entries.stream()
-//                .mapToDouble(MealEntry::getTotalCalories)
-//                .sum();
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        return new DailyReportDTO(
-//                date,
-//                totalCalories,
-//                totalCalories <= user.getDailyCalorieIntake(),
-//                entries.stream()
-//                        .map(MealEntryMapper.INSTANCE::toDTO)
-//                        .toList()
-//        );
-//    }
-//    public Map<LocalDate, Double> getCaloriesHistory(Long userId) {
-//        return mealEntryRepository.findDailyCaloriesSummary(userId).stream()
-//                .collect(Collectors.toMap(
-//                        arr -> (LocalDate) arr[0],
-//                        arr -> (Double) arr[1]
-//                ));
-//    }
-//}

@@ -8,10 +8,9 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "meal_entry_meals")
-@IdClass(MealEntryMealId.class) // Используем составной ключ
+@IdClass(MealEntryMealId.class)
 public class MealEntryMeal {
 
-    // Удаляем автоинкрементный ID
     @Id
     @ManyToOne
     @JoinColumn(name = "meal_entry_id", nullable = false)
@@ -26,22 +25,3 @@ public class MealEntryMeal {
     @Min(value = 1, message = "Количество порций должно быть не менее 1")
     private int quantity;
 }
-//@Getter
-//@Setter
-//@Entity
-//@Table(name = "meal_entry_meals")
-//public class MealEntryMeal {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "meal_entry_id")
-//    private MealEntry mealEntry;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "meal_id")
-//    private Meal meal;
-//
-//    private int quantity; // количество порций
-//}

@@ -12,9 +12,8 @@ import java.util.List;
 public interface MealMapper {
     MealMapper INSTANCE = Mappers.getMapper(MealMapper.class);
 
-    @Mapping(target = "quantity", ignore = true) // Поле quantity не есть в entity
+    // Убрали аннотацию с игнорированием quantity
     MealDTO toDTO(Meal meal);
-
 
     Meal toEntity(MealDTO dto);
 
