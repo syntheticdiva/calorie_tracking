@@ -7,6 +7,7 @@ import com.example.calorie_tracking.exception.MealNotFoundException;
 import com.example.calorie_tracking.mapper.MealMapper;
 import com.example.calorie_tracking.repository.MealRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MealService {
 
+    @Autowired
     private MealRepository mealRepository;
 
     /**
