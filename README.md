@@ -45,12 +45,18 @@ API для системы учёта калорий. Позволяет отсл
 1. Создайте БД в PostgreSQL:
    ```sql
    CREATE DATABASE calorie_tracking;
-Настройте подключение в application.properties:
+Настройте подключение в application.properties (редактировать можно будет с помощью notepad++):
 
 text
 spring.datasource.url=jdbc:postgresql://localhost:5432/calorie_tracking
+
+
 spring.datasource.username=ваш_логин
+
+
 spring.datasource.password=ваш_пароль
+
+
 Соберите и запустите приложение:
 
 bash
@@ -60,17 +66,22 @@ java -jar target/calorie-tracking-1.0.0.jar
 
  API Документация
 После запуска приложения документация доступна по ссылке:
-http://localhost:8080/swagger-ui.html
+http://localhost:8080/swagger-ui/index.html
 
 Основные эндпоинты:
-
-Метод	URL	                        Описание
+\\
 POST	/users	                Создание пользователя
+\\
 GET	    /users	                Все пользователи
+\\
 GET	    /users/{id}	            Пользователь по ID
+\\
 POST	/meals	                Добавить блюдо
+\\
 POST	/meal-entries	        Запись приёма пищи
+\\
 GET 	/meal-entries/report	Дневной отчёт
+\\
 
 
  Примеры запросов
