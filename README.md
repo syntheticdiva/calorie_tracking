@@ -59,9 +59,10 @@ spring.datasource.password=ваш_пароль
 
 Соберите и запустите приложение:
 
-bash
+в корневой папке вызовите cmd и введите команду
+
 mvn clean install
-java -jar target/calorie-tracking-1.0.0.jar
+java -jar target/calorie_tracking-0.0.1-SNAPSHOT.jar
 
 
 После запуска приложения документация доступна по ссылке:
